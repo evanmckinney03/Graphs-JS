@@ -1,5 +1,6 @@
 
 const CIRCLE_R = 8;
+let selected = -1;
 
 window.onload = init;
 
@@ -14,7 +15,9 @@ function init() {
   svg.appendChild(background);
   background.addEventListener('dblclick', function(e) {
     createNode(e.clientX, e.clientY, id++);
-    console.log('background dblclicked');
+  });
+  background.addEventListener('click', function(e) {
+    deselectNode();
   });
 }
 
@@ -28,9 +31,21 @@ function createNode(x, y, id) {
   circleSVG.classList.add('nodeUnselected');
   circleSVG.setAttribute('id', 'node' + id);
   circleSVG.addEventListener('mousedown', function() {
-    console.log(this.getAttribute('id'));
     this.classList.add('nodeSelected');
     this.classList.remove('nodeUnselected');
+    deselectNode();
+    selected = parseInt(this.getAttribute('id').substring('node'.length));
+    console.log(selected);
   });
   svg.appendChild(circleSVG);
+}
+
+//deselects the node in the selected global var
+function deselectNode() {
+  if(selected > -1) {
+    let node = document.getElementById('node' + selected);
+    node.classList.add('nodeUnselected');
+    node.classList.remove('nodeSelected');
+    selected = -1;
+  }
 }
