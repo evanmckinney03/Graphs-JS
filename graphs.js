@@ -45,34 +45,24 @@ function createNode(x, y, nodeID) {
   circleSVG.classList.add('nodeUnselected');
   circleSVG.setAttribute('id', 'node' + nodeID);
   circleSVG.addEventListener('mousedown', function(event) {
-    let nodeNum = parseInt(this.getAttribute('id').substring('node'.length));
-    if(selectedNode > -1 && selectedNode != nodeNum) {
-      //another node is selected
-      //check if line exists
-      const line = document.getElementById(
-	'line' + Math.min(selectedNode, nodeNum) + ',' + Math.max(selectedNode, nodeNum));
-      if(line) {
-        //exists
-        deleteLine(selectedNode, nodeNum);
-      } else {
-        //does not exist
-	createLine(selectedNode, nodeNum);
-      }
+    const nodeNum = parseInt(this.getAttribute('id').substring('node'.length));
+    const line = document.getElementById(
+	    'line' + Math.min(selectedNode, nodeNum) + ',' + Math.max(selectedNode, nodeNum));
+    if(selectedNode > -1 && selectedNode != nodeNum && !line) {
+      createLine(selectedNode, nodeNum);
     } else {
+      const deselectUp = function() {
+        deselectNode();
+        this.removeEventListener('mouseup', deselectUp);
+      }
       if(selectedNode != nodeNum) {
-	//no other node is selected
         this.classList.add('nodeSelected');
         this.classList.remove('nodeUnselected');
+        deselectNode();
         selectedNode = nodeNum;
       } else {
-	/*
         //the node clicked is selected
-        const deselectUp = function() {
-          deselectNode();
-	  this.removeEventListener('mouseup', deselectUp);
-        }
         this.addEventListener('mouseup', deselectUp);
-        */
       }
       //want to be able to move a node when mouse is down and moving and node is selected 
       //determine offset between mouse and node center
@@ -81,6 +71,7 @@ function createNode(x, y, nodeID) {
       const move = function(e) {
         //stuff to do when mouse down and moving
 	updateNodePosition(this, e.clientX - xOffset, e.clientY - yOffset, nodeNum);
+	this.removeEventListener('mouseup', deselectUp);
       }
       const up = function(e) {
         this.removeEventListener('mousemove', move);
