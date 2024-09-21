@@ -1,6 +1,7 @@
 
 const CIRCLE_R = 8;
 let selectedNode = -1;
+const adjList = [];
 
 window.onload = init;
 
@@ -26,14 +27,15 @@ function init() {
     if(e.key == 'Delete') {
       const element = document.getElementById('node' + selectedNode);
       if(element) {
-        element.remove();
-	selectedNode = -1;
+	deleteNode(element);
       }
     }
   });
 }
 
 function createNode(x, y, nodeID) {  
+  //add it to the adjacency list
+  adjList.push([]);
   const svg = document.getElementById('svg');
   const circleSVG = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   circleSVG.setAttribute('r', CIRCLE_R);
@@ -61,6 +63,7 @@ function createNode(x, y, nodeID) {
       //the node clicked is selected
       deselectNode()
     }
+    console.log(adjList);
   });
   svg.append(circleSVG);
 }
@@ -74,11 +77,14 @@ function createLine(nodeA, nodeB) {
   lineSVG.setAttribute('y1', nodeASVG.getAttribute('cy'));
   lineSVG.setAttribute('x2', nodeBSVG.getAttribute('cx'));
   lineSVG.setAttribute('y2', nodeBSVG.getAttribute('cy'));
-  lineSVG.setAttribute('id', 'line' + nodeA + ',' + nodeB);
+  lineSVG.setAttribute('id', 'line' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   lineSVG.setAttribute('class', 'line');
   //want to insert after the background rectangle so nodes are infront of the line
   const background = document.getElementById('background');
   svg.insertBefore(lineSVG, background.nextSibling);
+  //update the adjacency list
+  adjList[nodeA].push(nodeB);
+  adjList[nodeB].push(nodeA);
 }
 
 //deselects the node in the selected global var
@@ -89,4 +95,29 @@ function deselectNode() {
     node.classList.remove('nodeSelected');
     selectedNode = -1;
   }
+}
+
+//deletes the given node element
+function deleteNode(node) {
+  //update adjacency list
+  const nodeNum = parseInt(node.getAttribute('id').substring('node'.length));
+  //need to remove everything in the adjList[nodeNum]
+  while(adjList[nodeNum].length > 0) {
+    deleteLine(nodeNum, adjList[nodeNum][0]);
+  }
+  node.remove();
+  selectedNode = -1;
+  console.log(adjList);
+}
+
+//deletes the given line determined by the two nodes it connects
+//updates adjList
+function deleteLine(nodeA, nodeB) {
+  console.log('deleting ' + nodeA + ',' + nodeB);
+  const line = document.getElementById('line' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  line.remove();
+  adjList[nodeA].splice(adjList[nodeA].indexOf(nodeB), 1);
+  console.log(adjList[nodeA]);
+  adjList[nodeB].splice(adjList[nodeB].indexOf(nodeA), 1);
+  console.log(adjList[nodeB]);
 }
