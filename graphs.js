@@ -81,6 +81,9 @@ function createNode(x, y, nodeID) {
       this.addEventListener('mouseup', up);
     }
   });
+  circleSVG.addEventListener('dblclick', function() {
+    deleteNode(this);
+  });
   svg.append(circleSVG);
 }
 
