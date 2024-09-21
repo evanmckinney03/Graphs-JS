@@ -50,8 +50,16 @@ function createNode(x, y, nodeID) {
       //the node clicked is unselected
       if(selectedNode > -1) {
         //another node is selected
-	console.log("draw line btwn " + selectedNode + " " + nodeNum);
-	createLine(selectedNode, nodeNum);
+	//check if line exists
+	const line = document.getElementById(
+		'line' + Math.min(selectedNode, nodeNum) + ',' + Math.max(selectedNode, nodeNum));
+	if(line) {
+          //exists
+	  deleteLine(selectedNode, nodeNum);
+	} else {
+	  //does not exist
+	  createLine(selectedNode, nodeNum);
+        }
       } else {
 	//no other node is selected
         this.classList.add('nodeSelected');
@@ -63,7 +71,6 @@ function createNode(x, y, nodeID) {
       //the node clicked is selected
       deselectNode()
     }
-    console.log(adjList);
   });
   svg.append(circleSVG);
 }
@@ -107,7 +114,6 @@ function deleteNode(node) {
   }
   node.remove();
   selectedNode = -1;
-  console.log(adjList);
 }
 
 //deletes the given line determined by the two nodes it connects
@@ -117,7 +123,5 @@ function deleteLine(nodeA, nodeB) {
   const line = document.getElementById('line' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   line.remove();
   adjList[nodeA].splice(adjList[nodeA].indexOf(nodeB), 1);
-  console.log(adjList[nodeA]);
   adjList[nodeB].splice(adjList[nodeB].indexOf(nodeA), 1);
-  console.log(adjList[nodeB]);
 }
