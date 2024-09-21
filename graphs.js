@@ -1,6 +1,7 @@
 
 const NODE_R = 12;
 const WEIGHT_CIRC_R = 8;
+const TEXT_Y_OFF = 2;
 let selectedNode = -1;
 const adjList = [];
 
@@ -122,12 +123,21 @@ function createLine(nodeA, nodeB) {
   circleSVG.setAttribute('cy', (parseInt(lineSVG.getAttribute('y1')) + parseInt(lineSVG.getAttribute('y2'))) / 2);
   circleSVG.classList.add('weight');
   circleSVG.setAttribute('id', 'weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
-  //want to insert after the lineSVG so weight is on top of it
   circleSVG.addEventListener('dblclick', function() {
     const weightPair = this.getAttribute('id').substring('weight'.length).split(',');
     deleteLine(parseInt(weightPair[0]), parseInt(weightPair[1]));
   });
+  //want to insert after the lineSVG so weight is on top of it
   svg.insertBefore(circleSVG, lineSVG.nextSibling);
+  //create text in the middle of the circle
+  const textSVG = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  textSVG.setAttribute('x', circleSVG.getAttribute('cx'));
+  textSVG.setAttribute('y', parseInt(circleSVG.getAttribute('cy')) + TEXT_Y_OFF);
+  textSVG.setAttribute('class', 'text');
+  textSVG.setAttribute('id', 'text' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  textSVG.innerHTML = '0';
+  //insert after the circleSVG
+  svg.insertBefore(textSVG, circleSVG.nextSibling);
 }
 
 //update the line given by the parameters
@@ -147,6 +157,10 @@ function updateLine(nodeA, nodeB) {
   const weight = document.getElementById('weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   weight.setAttribute('cx', (parseInt(x1) + parseInt(x2)) / 2);
   weight.setAttribute('cy', (parseInt(y1) + parseInt(y2)) / 2);
+  //also need to update the text
+  const text = document.getElementById('text' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  text.setAttribute('x', (parseInt(x1) + parseInt(x2)) / 2);
+  text.setAttribute('y', (parseInt(y1) + parseInt(y2)) / 2 + TEXT_Y_OFF);
 }
 
 //deselects the node in the selected global var
