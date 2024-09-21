@@ -120,6 +120,10 @@ function createLine(nodeA, nodeB) {
   circleSVG.classList.add('weight');
   circleSVG.setAttribute('id', 'weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   //want to insert after the lineSVG so weight is on top of it
+  circleSVG.addEventListener('dblclick', function() {
+    const weightPair = this.getAttribute('id').substring('weight'.length).split(',');
+    deleteLine(parseInt(weightPair[0]), parseInt(weightPair[1]));
+  });
   svg.insertBefore(circleSVG, lineSVG.nextSibling);
 }
 
