@@ -1,6 +1,18 @@
-#svg {
-  background-color: beige;
+#background {
+  fill: beige;
 }
 body {
   margin: 0;
+}
+
+.node {
+  stroke-width: 1;
+  stroke: black;
+}
+
+.nodeUnselected {
+  fill: grey;
+}
+.nodeSelected {
+  fill: lightBlue;
 }
