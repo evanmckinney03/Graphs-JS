@@ -21,3 +21,9 @@ body {
   stroke-width: 1;
   stroke: black;
 }
+
+.weight {
+  stroke-width: 1;
+  stroke: black;
+  fill: lightGrey;
+}

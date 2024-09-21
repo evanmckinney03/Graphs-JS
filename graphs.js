@@ -1,5 +1,6 @@
 
-const CIRCLE_R = 8;
+const NODE_R = 12;
+const WEIGHT_CIRC_R = 8;
 let selectedNode = -1;
 const adjList = [];
 
@@ -16,7 +17,6 @@ function init() {
   let nodeID = 0;
   background.addEventListener('dblclick', function(e) {
     createNode(e.clientX, e.clientY, nodeID++);
-    console.log('background double clicked');
   });
   background.addEventListener('click', function(e) {
     deselectNode();
@@ -38,13 +38,13 @@ function createNode(x, y, nodeID) {
   adjList.push([]);
   const svg = document.getElementById('svg');
   const circleSVG = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circleSVG.setAttribute('r', CIRCLE_R);
+  circleSVG.setAttribute('r', NODE_R);
   circleSVG.setAttribute('cx', x);
   circleSVG.setAttribute('cy', y);
   circleSVG.classList.add('node');
   circleSVG.classList.add('nodeUnselected');
   circleSVG.setAttribute('id', 'node' + nodeID);
-  circleSVG.addEventListener('mousedown', function() {
+  circleSVG.addEventListener('mousedown', function(event) {
     let nodeNum = parseInt(this.getAttribute('id').substring('node'.length));
     if(selectedNode != nodeNum) {
       //the node clicked is unselected
@@ -66,6 +66,20 @@ function createNode(x, y, nodeID) {
         this.classList.remove('nodeUnselected');
         deselectNode();
         selectedNode = nodeNum;
+        //want to be able to move a node when mouse is down and moving and node is selected 
+        //determine offset between mouse and node center
+	const xOffset = event.clientX - this.getAttribute('cx');
+	const yOffset = event.clientY - this.getAttribute('cy');
+	const move = function(e) {
+          //stuff to do when mouse down and moving
+	  updateNodePosition(this, e.clientX - xOffset, e.clientY - yOffset, nodeNum);
+        }
+        const up = function(e) {
+          this.removeEventListener('mousemove', move);
+          this.removeEventListener('mouseup', up);
+        }
+        this.addEventListener('mousemove', move);
+        this.addEventListener('mouseup', up);
       }
     } else {
       //the node clicked is selected
@@ -74,6 +88,17 @@ function createNode(x, y, nodeID) {
   });
   svg.append(circleSVG);
 }
+
+//update the passed in node to the passed in position
+function updateNodePosition(node, x, y, nodeNum) {
+  node.setAttribute('cx', x);
+  node.setAttribute('cy', y);
+  //also need to update line positions
+  for(let i = 0; i < adjList[nodeNum].length; i++) {
+    updateLine(nodeNum, adjList[nodeNum][i]);
+  }
+}
+
 
 function createLine(nodeA, nodeB) { 
   const svg = document.getElementById('svg');
@@ -92,6 +117,34 @@ function createLine(nodeA, nodeB) {
   //update the adjacency list
   adjList[nodeA].push(nodeB);
   adjList[nodeB].push(nodeA);
+  //create a circle in the middle of the line
+  const circleSVG = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circleSVG.setAttribute('r', WEIGHT_CIRC_R);
+  circleSVG.setAttribute('cx', (parseInt(lineSVG.getAttribute('x1')) + parseInt(lineSVG.getAttribute('x2'))) / 2);
+  circleSVG.setAttribute('cy', (parseInt(lineSVG.getAttribute('y1')) + parseInt(lineSVG.getAttribute('y2'))) / 2);
+  circleSVG.classList.add('weight');
+  circleSVG.setAttribute('id', 'weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  //want to insert after the lineSVG so weight is on top of it
+  svg.insertBefore(circleSVG, lineSVG.nextSibling);
+}
+
+//update the line given by the parameters
+function updateLine(nodeA, nodeB) {
+  const line = document.getElementById('line' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  const nodeASVG = document.getElementById('node' + nodeA);
+  const nodeBSVG = document.getElementById('node' + nodeB);
+  const x1 = nodeASVG.getAttribute('cx');
+  const y1 = nodeASVG.getAttribute('cy');
+  const x2 = nodeBSVG.getAttribute('cx');
+  const y2 = nodeBSVG.getAttribute('cy');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  //also need to update weight
+  const weight = document.getElementById('weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  weight.setAttribute('cx', (parseInt(x1) + parseInt(x2)) / 2);
+  weight.setAttribute('cy', (parseInt(y1) + parseInt(y2)) / 2);
 }
 
 //deselects the node in the selected global var
@@ -119,9 +172,11 @@ function deleteNode(node) {
 //deletes the given line determined by the two nodes it connects
 //updates adjList
 function deleteLine(nodeA, nodeB) {
-  console.log('deleting ' + nodeA + ',' + nodeB);
   const line = document.getElementById('line' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   line.remove();
+  const weight = document.getElementById('weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  weight.remove();
+  //update adjList
   adjList[nodeA].splice(adjList[nodeA].indexOf(nodeB), 1);
   adjList[nodeB].splice(adjList[nodeB].indexOf(nodeA), 1);
 }
