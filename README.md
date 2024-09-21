@@ -1,2 +1,2 @@
-#Graphs-JS
+# Graphs-JS
 Visualizing graphs in JS
