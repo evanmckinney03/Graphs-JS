@@ -16,3 +16,8 @@ body {
 .nodeSelected {
   fill: lightBlue;
 }
+
+.line {
+  stroke-width: 1;
+  stroke: black;
+}
