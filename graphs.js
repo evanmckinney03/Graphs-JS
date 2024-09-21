@@ -46,44 +46,48 @@ function createNode(x, y, nodeID) {
   circleSVG.setAttribute('id', 'node' + nodeID);
   circleSVG.addEventListener('mousedown', function(event) {
     let nodeNum = parseInt(this.getAttribute('id').substring('node'.length));
-    if(selectedNode != nodeNum) {
-      //the node clicked is unselected
-      if(selectedNode > -1) {
-        //another node is selected
-	//check if line exists
-	const line = document.getElementById(
-		'line' + Math.min(selectedNode, nodeNum) + ',' + Math.max(selectedNode, nodeNum));
-	if(line) {
-          //exists
-	  deleteLine(selectedNode, nodeNum);
-	} else {
-	  //does not exist
-	  createLine(selectedNode, nodeNum);
-        }
+    if(selectedNode > -1 && selectedNode != nodeNum) {
+      //another node is selected
+      //check if line exists
+      const line = document.getElementById(
+	'line' + Math.min(selectedNode, nodeNum) + ',' + Math.max(selectedNode, nodeNum));
+      if(line) {
+        //exists
+        deleteLine(selectedNode, nodeNum);
       } else {
+        //does not exist
+	createLine(selectedNode, nodeNum);
+      }
+    } else {
+      if(selectedNode != nodeNum) {
 	//no other node is selected
         this.classList.add('nodeSelected');
         this.classList.remove('nodeUnselected');
-        deselectNode();
         selectedNode = nodeNum;
-        //want to be able to move a node when mouse is down and moving and node is selected 
-        //determine offset between mouse and node center
-	const xOffset = event.clientX - this.getAttribute('cx');
-	const yOffset = event.clientY - this.getAttribute('cy');
-	const move = function(e) {
-          //stuff to do when mouse down and moving
-	  updateNodePosition(this, e.clientX - xOffset, e.clientY - yOffset, nodeNum);
+      } else {
+	/*
+        //the node clicked is selected
+        const deselectUp = function() {
+          deselectNode();
+	  this.removeEventListener('mouseup', deselectUp);
         }
-        const up = function(e) {
-          this.removeEventListener('mousemove', move);
-          this.removeEventListener('mouseup', up);
-        }
-        this.addEventListener('mousemove', move);
-        this.addEventListener('mouseup', up);
+        this.addEventListener('mouseup', deselectUp);
+        */
       }
-    } else {
-      //the node clicked is selected
-      deselectNode()
+      //want to be able to move a node when mouse is down and moving and node is selected 
+      //determine offset between mouse and node center
+      const xOffset = event.clientX - this.getAttribute('cx');
+      const yOffset = event.clientY - this.getAttribute('cy');
+      const move = function(e) {
+        //stuff to do when mouse down and moving
+	updateNodePosition(this, e.clientX - xOffset, e.clientY - yOffset, nodeNum);
+      }
+      const up = function(e) {
+        this.removeEventListener('mousemove', move);
+        this.removeEventListener('mouseup', up);
+      }
+      this.addEventListener('mousemove', move);
+      this.addEventListener('mouseup', up);
     }
   });
   svg.append(circleSVG);
