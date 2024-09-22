@@ -1,7 +1,7 @@
 
-const NODE_R = 12;
-const WEIGHT_CIRC_R = 8;
-const TEXT_Y_OFF = 2;
+const NODE_R = 16;
+const WEIGHT_CIRC_R = 12;
+const TEXT_BOX_SIZE = 16;
 let selectedNode = -1;
 const adjList = [];
 
@@ -57,10 +57,14 @@ function createNode(x, y, nodeID) {
         this.removeEventListener('mouseup', deselectUp);
       }
       if(selectedNode != nodeNum) {
+	//select this node
         this.classList.add('nodeSelected');
         this.classList.remove('nodeUnselected');
         deselectNode();
         selectedNode = nodeNum;
+	//move selected node to the front of SVG
+	this.remove();
+	svg.appendChild(this);
       } else {
         //the node clicked is selected
         this.addEventListener('mouseup', deselectUp);
@@ -83,6 +87,7 @@ function createNode(x, y, nodeID) {
     }
   });
   circleSVG.addEventListener('dblclick', function() {
+    console.log('dbl click')
     deleteNode(this);
   });
   svg.append(circleSVG);
@@ -129,15 +134,18 @@ function createLine(nodeA, nodeB) {
   });
   //want to insert after the lineSVG so weight is on top of it
   svg.insertBefore(circleSVG, lineSVG.nextSibling);
-  //create text in the middle of the circle
-  const textSVG = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  textSVG.setAttribute('x', circleSVG.getAttribute('cx'));
-  textSVG.setAttribute('y', parseInt(circleSVG.getAttribute('cy')) + TEXT_Y_OFF);
-  textSVG.setAttribute('class', 'text');
-  textSVG.setAttribute('id', 'text' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
-  textSVG.innerHTML = '0';
-  //insert after the circleSVG
-  svg.insertBefore(textSVG, circleSVG.nextSibling);
+  //create a textbox in the middle of the circle
+  const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+  foreignObject.setAttribute('x', circleSVG.getAttribute('cx') - TEXT_BOX_SIZE / 2);
+  foreignObject.setAttribute('y', circleSVG.getAttribute('cy') - TEXT_BOX_SIZE / 2);
+  foreignObject.setAttribute('width', TEXT_BOX_SIZE);
+  foreignObject.setAttribute('height', TEXT_BOX_SIZE);
+  foreignObject.setAttribute('id', 'fo' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  const textBox = document.createElement('input');
+  textBox.setAttribute('type', 'number');
+  textBox.classList.add('text');
+  foreignObject.appendChild(textBox);
+  svg.insertBefore(foreignObject, circleSVG.nextSibling);
 }
 
 //update the line given by the parameters
@@ -157,10 +165,10 @@ function updateLine(nodeA, nodeB) {
   const weight = document.getElementById('weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   weight.setAttribute('cx', (parseInt(x1) + parseInt(x2)) / 2);
   weight.setAttribute('cy', (parseInt(y1) + parseInt(y2)) / 2);
-  //also need to update the text
-  const text = document.getElementById('text' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
-  text.setAttribute('x', (parseInt(x1) + parseInt(x2)) / 2);
-  text.setAttribute('y', (parseInt(y1) + parseInt(y2)) / 2 + TEXT_Y_OFF);
+  //also need to update the textbox
+  const foreignObject = document.getElementById('fo' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  foreignObject.setAttribute('x', (parseInt(x1) + parseInt(x2)) / 2 - TEXT_BOX_SIZE / 2);
+  foreignObject.setAttribute('y', (parseInt(y1) + parseInt(y2)) / 2 - TEXT_BOX_SIZE / 2);
 }
 
 //deselects the node in the selected global var
@@ -192,6 +200,8 @@ function deleteLine(nodeA, nodeB) {
   line.remove();
   const weight = document.getElementById('weight' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
   weight.remove();
+  const foreignObject = document.getElementById('fo' + Math.min(nodeA, nodeB) + ',' + Math.max(nodeA, nodeB));
+  foreignObject.remove();
   //update adjList
   adjList[nodeA].splice(adjList[nodeA].indexOf(nodeB), 1);
   adjList[nodeB].splice(adjList[nodeB].indexOf(nodeA), 1);
