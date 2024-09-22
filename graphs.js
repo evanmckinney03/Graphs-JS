@@ -2,6 +2,7 @@
 const NODE_R = 16;
 const WEIGHT_CIRC_R = 12;
 const TEXT_BOX_SIZE = 16;
+const MAX_WEIGHT = '99';
 let selectedNode = -1;
 const adjList = [];
 
@@ -144,6 +145,14 @@ function createLine(nodeA, nodeB) {
   const textBox = document.createElement('input');
   textBox.setAttribute('type', 'number');
   textBox.classList.add('text');
+  textBox.setAttribute('value', '0');
+  textBox.setAttribute('max', MAX_WEIGHT);
+  textBox.setAttribute('min', 0);
+  textBox.addEventListener('input', function() {
+    if(this.value.length > 2) {
+      this.value = this.value.slice(0, 2);
+    }
+  });
   foreignObject.appendChild(textBox);
   svg.insertBefore(foreignObject, circleSVG.nextSibling);
 }
